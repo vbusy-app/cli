@@ -7,19 +7,19 @@ export class UserService {
         this.api = api;
     }
 
-    async register() {
-
-    }
-
-    async login() {
-
+    async login(email: string, password: string) {
+        return this.api.request("post", "login", { email, password });
     }
 
     async logout() {
-
+        return this.api.request("post", "logout");
     }
 
-    async get() {
+    async get(token: string) {
+        const headers = {
+            Authorization: `Bearer ${token}`,
+        };
 
+        return this.api.request("get", "profile", null, headers);
     }
 }
