@@ -1,18 +1,18 @@
 import axios from "axios";
-import { TaskService, UserService } from "../services/index.js";
+import { TaskRepository, UserRepository } from "../repositories/index.js";
 
 export class API {
     private api;
-    public taskService: TaskService;
-    public userService: UserService;
+    public taskRepository: TaskRepository;
+    public userRepository: UserRepository;
 
     constructor() {
         this.api = axios.create({
             baseURL: process.env.API_BASE_URL || "http://localhost:8080/api/v1/",
         });
 
-        this.taskService = new TaskService(this);
-        this.userService = new UserService(this);
+        this.taskRepository = new TaskRepository(this);
+        this.userRepository = new UserRepository(this);
     }
 
     async request(method: string, url: string, data?: any, headers?: any) {

@@ -1,6 +1,6 @@
 import type { API } from "../lib/api.js";
 
-export class UserService {
+export class UserRepository {
     private api: API;
 
     constructor(api: API) {

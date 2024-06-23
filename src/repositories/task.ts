@@ -1,18 +1,18 @@
 import type { API } from "../lib/api.js";
 
-export class TaskService {
+export class TaskRepository {
     private api: API;
 
     constructor(api: API) {
         this.api = api;
     }
 
-    async create(token: string, task: string, priority: string, dueDate: string) {
+    async create(token: string, props: Record<string, any>) {
         const headers = {
             Authorization: `Bearer ${token}`,
         };
 
-        return this.api.request("post", "tasks", { task, priority, dueDate }, headers);
+        return this.api.request("post", "tasks", props, headers);
     }
 
     async get(token: string, id: string) {

@@ -20,7 +20,7 @@ export default class ListCmd extends Command {
         let count = 1;
 
         const token = await keytar.getPassword("tasks", "token");
-        const tasks = await this.vbusy.api.taskService.getAll(token as string) as Task[];
+        const tasks = await this.vbusy.api.taskRepository.getAll(token as string) as Task[];
 
         if (!tasks || !tasks.length) {
             console.log("You haven't made any tasks. :~(");

@@ -5,28 +5,29 @@ import Table from "cli-table";
 import keytar from "keytar";
 import { select } from "@inquirer/prompts";
 import inquirer from "inquirer";
-import type { UserService } from "../services/user.js";
+import type { UserRepository } from "../repositories/user.js";
 import { isValidEmail } from "./validators.js";
+import { formatOptions } from "./formatters.js";
 
 export const isAuthenticated = async (): Promise<boolean> => {
     const token = await keytar.getPassword("tasks", "token");
     return !!token;
 };
 
-export const handleLogin = async (userService: UserService): Promise<void> => {
+export const handleLogin = async (userRepository: UserRepository): Promise<void> => {
     const token = await keytar.getPassword("tasks", "token");
     const userId = await keytar.getPassword("user", "userId");
 
-    const data = await userService.get(token as string, userId as string);
+    const data = await userRepository.get(token as string, userId as string);
 
     console.log(`🌱 Logged in as ${data.username}`);
 };
 
-export const handleLogout = async (userService: UserService): Promise<void> => {
+export const handleLogout = async (userRepository: UserRepository): Promise<void> => {
     console.log("Logging out... Cya! 🐝");
 
     try {
-        await userService.logout();
+        await userRepository.logout();
         await keytar.deletePassword("tasks", "token");
         await keytar.deletePassword("user", "userId");
     } catch (error) {
@@ -36,7 +37,7 @@ export const handleLogout = async (userService: UserService): Promise<void> => {
     process.exit();
 };
 
-export const promptLogin = (userService: UserService) => {
+export const promptLogin = (userRepository: UserRepository) => {
     inquirer.prompt([
         {
             type: "input",
@@ -63,7 +64,7 @@ export const promptLogin = (userService: UserService) => {
         },
     ]).then(async ({ email, password }) => {
         try {
-            const response = await userService.login(email, password);
+            const response = await userRepository.login(email, password);
             if (response?._id && response.token) {
                 const userId = response._id;
                 const token = response.token;
@@ -71,10 +72,10 @@ export const promptLogin = (userService: UserService) => {
                 await keytar.setPassword("user", "userId", userId);
                 await keytar.setPassword("tasks", "token", token);
 
-                await handleLogin(userService);
+                await handleLogin(userRepository);
                 
                 setTimeout(async () => {
-                    await promptDashboard(userService);
+                    await promptDashboard(userRepository);
                 }, 1000);
             }
         } catch (error) {
@@ -83,10 +84,10 @@ export const promptLogin = (userService: UserService) => {
     });
 };
 
-export const promptDashboard = async (userService: UserService) => {
+export const promptDashboard = async (userRepository: UserRepository) => {
     clear();
 
-    await getUserTasks(userService);
+    await getUserTasks(userRepository);
 
     const choice = await select({
         message: "Command Nav",
@@ -100,7 +101,7 @@ export const promptDashboard = async (userService: UserService) => {
 
     switch (choice) {
         case "logout":
-            handleLogout(userService);
+            handleLogout(userRepository);
             break;
         case "info":
             figlet.text("vbusy", (error, data) => {
@@ -120,8 +121,8 @@ export const promptDashboard = async (userService: UserService) => {
             const cmds = JSON.parse(commands as string);
 
             const table = new Table({
-                head: [chalk.bgYellow.black(" Name "), chalk.bgYellow.black(" Description ")],
-                colWidths: [20, 50],
+                head: [chalk.bgYellow.black(" Name "), chalk.bgYellow.black(" Aliases "), chalk.bgYellow.black(" Flags" ), chalk.bgYellow.black(" Description ")],
+                colWidths: [10, 15, 15, 50],
                 chars: {
                     "top": "", "top-mid": "", "top-left": "", "top-right": "",
                     "bottom": "", "bottom-mid": "", "bottom-left": "", "bottom-right": "",
@@ -132,7 +133,7 @@ export const promptDashboard = async (userService: UserService) => {
             });
 
             for (const cmd of cmds) {
-                table.push([`• ${cmd.name}`, cmd.desc]);
+                table.push([`• ${cmd.name}`, cmd.aliases.join(", "), formatOptions(cmd.options), cmd.desc]);
             }
 
             console.log(table.toString());
@@ -141,10 +142,10 @@ export const promptDashboard = async (userService: UserService) => {
     }
 };
 
-export const getUserTasks = async (userService: UserService) => {
+export const getUserTasks = async (userRepository: UserRepository) => {
     const token = await keytar.getPassword("tasks", "token");
     const userId = await keytar.getPassword("user", "userId");
-    const data = await userService.get(token as string, userId as string);
+    const data = await userRepository.get(token as string, userId as string);
 
     await data;
 }

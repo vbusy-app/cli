@@ -21,17 +21,17 @@ export class Vbusy {
                 const bee = fs.readFileSync("assets/bee.txt", "utf8");
                 console.log(bee);
 
-                promptLogin(this.api.userService);
+                promptLogin(this.api.userRepository);
                 return;
             }
 
             if (!argv._.length) {
                 setTimeout(async () => {
-                    await promptDashboard(this.api.userService);
+                    await promptDashboard(this.api.userRepository);
                 }, 1000);
             }
 
-            await handleLogin(this.api.userService);
+            await handleLogin(this.api.userRepository);
         });
 
         this.api = new API();
@@ -49,12 +49,14 @@ export class Vbusy {
                 name: cmd.name,
                 desc: cmd.desc,
                 aliases: cmd.aliases,
+                options: cmd.options,
             });
             
             this.yargsInstance.command({
                 command: cmd.name,
                 describe: cmd.desc,
                 aliases: cmd.aliases,
+                builder: (argv: yargs.Argv<unknown>) => argv.options(cmd.options),
                 handler: async (argv) => cmd.run(argv),
             });
         }
