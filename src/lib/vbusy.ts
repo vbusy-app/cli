@@ -25,11 +25,13 @@ export class Vbusy {
                 return;
             }
 
+            if (!argv._.length) {
+                setTimeout(async () => {
+                    await promptDashboard(this.api.userService);
+                }, 1000);
+            }
+
             await handleLogin(this.api.userService);
-            
-            setTimeout(async () => {
-                await promptDashboard(this.api.userService);
-            }, 1000);
         });
 
         this.api = new API();

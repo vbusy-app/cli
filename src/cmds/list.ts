@@ -22,13 +22,13 @@ export default class ListCmd extends Command {
         const token = await keytar.getPassword("tasks", "token");
         const tasks = await this.vbusy.api.taskService.getAll(token as string) as Task[];
 
-        if (!tasks || tasks.length <= 0) {
+        if (!tasks || !tasks.length) {
             console.log("You haven't made any tasks. :~(");
             return;
         }
 
         const table = new Table({
-            head: ["ID", "Completed", "Due", "Priority", "Task"],
+            head: [chalk.bgYellow.black("ID"), chalk.bgYellow.black("Completed"), chalk.bgYellow.black("Due"), chalk.bgYellow.black("Priority"), chalk.bgYellow.black("Task")],
             colWidths: [4, 10, 14, 8, 30],
             chars: {
                 "top": "", "top-mid": "", "top-left": "", "top-right": "",
@@ -43,7 +43,6 @@ export default class ListCmd extends Command {
 
         for (const task of tasks) {
             const completed = task.completed ? chalk.green("[✔]") : "[ ]";
-            const dueDate = task.dueDate ? formatDueDate(task.dueDate) : " ";
             const taskId = chalk.blue(count++);
             const taskName = task.archived ? chalk.gray(`[archived] ${task.task}`) : task.task;
 
