@@ -8,18 +8,18 @@ export class UserService {
     }
 
     async login(email: string, password: string) {
-        return this.api.request("post", "login", { email, password });
+        return this.api.request("post", "users/login", { email, password });
     }
 
     async logout() {
-        return this.api.request("post", "logout");
+        return this.api.request("post", "users/logout");
     }
 
-    async get(token: string) {
+    async get(token: string, userId: string) {
         const headers = {
             Authorization: `Bearer ${token}`,
         };
 
-        return this.api.request("get", "profile", null, headers);
+        return this.api.request("get", `users/profile/${userId}`, null, headers);
     }
 }
