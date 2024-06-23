@@ -26,20 +26,29 @@ export class Vbusy {
             }
 
             await handleLogin(this.api.userService);
-            await promptDashboard(this.api.userService);
+            
+            setTimeout(async () => {
+                await promptDashboard(this.api.userService);
+            }, 1000);
         });
 
         this.api = new API();
     }
 
-    private loadCmds(): void {
+    private async loadCmds(): Promise<void> {
         const modules = Object.values(Commands);
+
+        const commands = [];
 
         for (const Module of modules) {
             const cmd: Command = new Module(this);
 
-            keytar.setPassword("cmdList", "cmds", JSON.stringify(modules));
-
+            commands.push({
+                name: cmd.name,
+                desc: cmd.desc,
+                aliases: cmd.aliases,
+            });
+            
             this.yargsInstance.command({
                 command: cmd.name,
                 describe: cmd.desc,
@@ -47,6 +56,8 @@ export class Vbusy {
                 handler: async (argv) => cmd.run(argv),
             });
         }
+
+        await keytar.setPassword("cmdsList", "cmds", JSON.stringify(commands));
     }
 
     public init(): void {

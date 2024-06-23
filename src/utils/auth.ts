@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import clear from "clear";
 import figlet from "figlet";
 import Table from "cli-table";
@@ -70,8 +71,11 @@ export const promptLogin = (userService: UserService) => {
                 await keytar.setPassword("user", "userId", userId);
                 await keytar.setPassword("tasks", "token", token);
 
-                handleLogin(userService);
-                promptDashboard(userService);
+                await handleLogin(userService);
+                
+                setTimeout(async () => {
+                    await promptDashboard(userService);
+                }, 1000);
             }
         } catch (error) {
             console.error(error);
@@ -116,7 +120,7 @@ export const promptDashboard = async (userService: UserService) => {
             const cmds = JSON.parse(commands as string);
 
             const table = new Table({
-                head: ["Name", "Description"],
+                head: [chalk.bgYellow.black(" Name "), chalk.bgYellow.black(" Description ")],
                 colWidths: [20, 50],
                 chars: {
                     "top": "", "top-mid": "", "top-left": "", "top-right": "",
