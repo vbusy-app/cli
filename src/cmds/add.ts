@@ -1,9 +1,10 @@
+import type { Vbusy } from "../lib/vbusy.js";
 import { Command } from "../lib/command.js";
 import type { Argv } from "yargs";
 
 export default class AddCmd extends Command {
-    constructor() {
-        super({
+    constructor(vbusy: Vbusy) {
+        super(vbusy, {
             name: "add",
             desc: "add a new task",
             aliases: ["create", "+"]
