@@ -9,7 +9,7 @@ type Action = "delete" | "view";
 
 export const taskSelection = async (action: Action, tasks: Task[]) => {
 	if (!tasks.length) {
-		console.log("You don't have any tasks to delete. :~)");
+		console.log(`You don't have any tasks to ${action}. :~)`);
 		return;
 	}
 
