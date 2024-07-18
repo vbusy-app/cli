@@ -1,72 +1,71 @@
 import fs from "node:fs";
-import keytar from "keytar";
 import yargs, { type Argv } from "yargs";
 import { hideBin } from "yargs/helpers";
 import * as Commands from "../cmds/index.js";
-import { deleteAllData, handleLogin, isAuthenticated, promptDashboard, promptLogin } from "../utils/index.js";
+import {
+	deleteAllData,
+	handleLogin,
+	isAuthenticated,
+	promptDashboard,
+	promptLogin,
+} from "../utils/index.js";
 import { API } from "./api.js";
 import type { Command } from "./command";
 
 export class Vbusy {
-    private yargsInstance: Argv;
-    public api: API;
+	private yargsInstance: Argv;
 
-    constructor() {
-        this.yargsInstance = yargs(hideBin(process.argv)).scriptName("vbusy")
-            .usage("$0 <cmd> [args]")
-            .help();
-        this.yargsInstance.middleware(async (argv) => {
-            const authenticated = await isAuthenticated();
-            if (!authenticated) {
-                const bee = fs.readFileSync("assets/bee.txt", "utf8");
-                console.log(bee);
+	public commands: Map<string, Command> = new Map();
+	public api: API;
 
-                promptLogin(this.api.userRepository);
-                return;
-            }
+	constructor() {
+		this.yargsInstance = yargs(hideBin(process.argv))
+			.scriptName("vbusy")
+			.usage("$0 <cmd> [args]")
+			.help();
+		this.yargsInstance.middleware(async (argv) => {
+			const authenticated = await isAuthenticated();
+			if (!authenticated) {
+				const bee = fs.readFileSync("assets/bee.txt", "utf8");
+				console.log(bee);
 
-            if (!argv._.length) {
-                setTimeout(async () => {
-                    await promptDashboard(this.api.userRepository);
-                }, 1000);
-            }
+				promptLogin(this, this.api.userRepository);
+				return;
+			}
 
-            await handleLogin(this.api.userRepository);
-        });
+			if (!argv._.length) {
+				setTimeout(async () => {
+					await promptDashboard(this, this.api.userRepository);
+				}, 1000);
+			}
 
-        this.api = new API();
-    }
+			await handleLogin(this.api.userRepository);
+		});
 
-    private async loadCmds(): Promise<void> {
-        const modules = Object.values(Commands);
+		this.api = new API();
+	}
 
-        const commands = [];
+	private async loadCmds(): Promise<void> {
+		const modules = Object.values(Commands);
 
-        for (const Module of modules) {
-            const cmd: Command = new Module(this);
+		for (const Module of modules) {
+			const cmd: Command = new Module(this);
 
-            commands.push({
-                name: cmd.name,
-                desc: cmd.desc,
-                aliases: cmd.aliases,
-                options: cmd.options,
-            });
-            
-            this.yargsInstance.command({
-                command: cmd.name,
-                describe: cmd.desc,
-                aliases: cmd.aliases,
-                builder: (argv: yargs.Argv<unknown>) => argv.options(cmd.options),
-                handler: async (argv) => cmd.run(argv),
-            });
-        }
+			this.commands.set(cmd.name, cmd);
 
-        await keytar.setPassword("cmdsList", "cmds", JSON.stringify(commands));
-    }
+			this.yargsInstance.command({
+				command: cmd.name,
+				describe: cmd.desc,
+				aliases: cmd.aliases,
+				builder: (argv: yargs.Argv<unknown>) => argv.options(cmd.options),
+				handler: async (argv) => cmd.run(argv),
+			});
+		}
+	}
 
-    public init(): void {
-        // deleteAllData();
-        this.loadCmds();
-        this.yargsInstance.argv;
-    }
+	public init(): void {
+		// deleteAllData();
+		this.loadCmds();
+		this.yargsInstance.argv;
+	}
 }
